@@ -1,6 +1,10 @@
 const fs = require("fs");
-class CsvToJSON {
-  constructor(private filename: string, private directoryName: string, private outputfilename: string) {}
+export default class CsvToJSON {
+  constructor(
+    private filename: string,
+    private directoryName: string,
+    private outputfilename: string
+  ) {}
   checkIfDirectoryExists() {
     if (!fs.existsSync(this.directoryName)) {
       return false;
@@ -16,11 +20,15 @@ class CsvToJSON {
   }
 
   readData(): string {
-    const repositoryExists = this.checkIfDirectoryExists();
-    if (!repositoryExists) return "Directory does not exist";
-    const fileExists = this.checkIfFileExists();
-    if (!fileExists) return "File does not exist";
-    return fs.readFileSync(`./data/${this.filename}`, "utf8");
+    try {
+      const repositoryExists = this.checkIfDirectoryExists();
+      if (!repositoryExists) throw "Directory does not exist";
+      const fileExists = this.checkIfFileExists();
+      if (!fileExists) throw "File does not exist";
+      return fs.readFileSync(`./data/${this.filename}`, "utf8");
+    } catch (error: any) {
+      throw error;
+    }
   }
 
   //   validateFileData() {
@@ -62,24 +70,25 @@ class CsvToJSON {
     const headers = this.getHeaders(csvArray);
     const splitedCsvArray = this.splitCsvArray(csvArray);
     const json = this.buildJson(splitedCsvArray, headers);
-    console.log(headers);
-    console.log(csvArray);
-    console.log(splitedCsvArray);
-    console.log(json);
     return json;
   }
 
   writeJSON(): void {
     const json = this.toJSON();
     if (fs.existsSync("output")) {
-      fs.writeFileSync(`./output/${this.outputfilename}.json`, JSON.stringify(json));
+      fs.writeFileSync(
+        `./output/${this.outputfilename}.json`,
+        JSON.stringify(json, null, 2)
+      );
     } else {
       fs.mkdirSync("output");
-      fs.writeFileSync(`./output/${this.outputfilename}.json`, JSON.stringify(json));
+      fs.writeFileSync(
+        `./output/${this.outputfilename}.json`,
+        JSON.stringify(json)
+      );
     }
   }
 }
 
 const csvToJSON = new CsvToJSON("exemplo.csv", "data", "candidatos");
-const json = csvToJSON.toJSON();
 csvToJSON.writeJSON();
