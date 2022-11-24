@@ -19,24 +19,31 @@ export default class CsvToJSON {
     return true;
   }
 
+  checkFileExtension() {
+    if(this.filename.includes(".csv")) return true;
+    return false;
+  }
+
   readData(): string {
     try {
       const repositoryExists = this.checkIfDirectoryExists();
-      if (!repositoryExists) throw "Directory does not exist";
+      if (!repositoryExists) throw new Error("Directory does not exist");
       const fileExists = this.checkIfFileExists();
-      if (!fileExists) throw "File does not exist";
+      if (!fileExists) throw new Error("File does not exist");
+      const isFileCsv = this.checkFileExtension();
+      if (!isFileCsv) throw new Error("File is not a CSV");
       return fs.readFileSync(`./data/${this.filename}`, "utf8");
     } catch (error: any) {
-      throw error;
+      throw error.message;
     }
   }
 
-  //   validateFileData() {
-  //     const data = this.readData();
-
-  //   }
-
   csvToArray(data: string): string[] {
+    if (data.includes(";")) {
+      for (let i = 0; i < data.length; i++) {
+        data = data.replace(";", ",")
+      }
+    }
     return data.split("\n");
   }
 
@@ -89,6 +96,3 @@ export default class CsvToJSON {
     }
   }
 }
-
-const csvToJSON = new CsvToJSON("exemplo.csv", "data", "candidatos");
-csvToJSON.writeJSON();
