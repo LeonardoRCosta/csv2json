@@ -146,7 +146,7 @@ export default class CsvToJSON {
       fs.mkdirSync("output");
       fs.writeFileSync(
         `./output/${this.outputfilename}.json`,
-        JSON.stringify(json)
+        JSON.stringify(json, null, 2)
       );
     }
   }
