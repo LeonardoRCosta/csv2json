@@ -1,4 +1,4 @@
-import CsvToJsonConversor from "./CsvToJsonConversor";
+import CsvToJsonConversor from "./CsvToJSON";
 const fs = require("fs");
 const csv2json = new CsvToJsonConversor("exemplo.csv", "data", "exemplo");
 

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --testPathPattern=src",
     "dev": "npx tsc",
     "start": "node build/script.js"
   },
