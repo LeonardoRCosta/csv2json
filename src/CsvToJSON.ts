@@ -1,4 +1,5 @@
-const fs = require("fs");
+import fs from "fs";
+type JsonProps = Record<string, unknown>;
 /**
  * Class that converts a CSV file into a JSON file
  *
@@ -19,10 +20,10 @@ export default class CsvToJSON {
    * This method checks if the directory passed into the constructor exists
    * @return true if the directory exists and false otherwise
    */
-  checkIfDirectoryExists() {
-    if (!fs.existsSync(this.directoryName)) {
-      return false;
-    }
+  checkIfDirectoryExists(): boolean {
+    const directoryExists = fs.existsSync(this.directoryName);
+    if (!directoryExists) return false;
+
     return true;
   }
 
@@ -30,10 +31,12 @@ export default class CsvToJSON {
    * This method checks if the file passed into the constructor exists
    * @return true if the file exists and false otherwise
    */
-  checkIfFileExists() {
-    if (!fs.existsSync(`./${this.directoryName}/${this.filename}`)) {
-      return false;
-    }
+  checkIfFileExists(): boolean {
+    const fileExists = fs.existsSync(
+      `./${this.directoryName}/${this.filename}`
+    );
+    if (!fileExists) return false;
+
     return true;
   }
 
@@ -41,9 +44,13 @@ export default class CsvToJSON {
    * This method checks if the file extension is .csv
    * @return true if the file extension is .csv and false otherwise
    */
-  checkFileExtension() {
-    if (this.filename.includes(".csv")) return true;
-    return false;
+  checkFileExtension(): boolean {
+    const fileExtension = this.filename.slice(this.filename.length - 4);
+
+    const isFileCsv = fileExtension === ".csv";
+    if (!isFileCsv) return false;
+
+    return true;
   }
 
   /**
@@ -54,10 +61,13 @@ export default class CsvToJSON {
     try {
       const repositoryExists = this.checkIfDirectoryExists();
       if (!repositoryExists) throw new Error("Directory does not exist");
+
       const fileExists = this.checkIfFileExists();
       if (!fileExists) throw new Error("File does not exist");
+
       const isFileCsv = this.checkFileExtension();
       if (!isFileCsv) throw new Error("File is not a CSV");
+
       return fs.readFileSync(`./data/${this.filename}`, "utf8");
     } catch (error: any) {
       throw error.message;
@@ -70,10 +80,11 @@ export default class CsvToJSON {
    * @returns an array of strings containing the data of the csv file
    */
   csvToArray(data: string): string[] {
-    if (data.includes(";")) {
-      for (let i = 0; i < data.length; i++) {
-        data = data.replace(";", ",");
-      }
+    const isSemicolonSeparated = data.includes(";")
+    if (!isSemicolonSeparated) return data.split("\n");
+
+    for (let i = 0; i < data.length; i++) {
+      data = data.replace(";", ",");
     }
     return data.split("\n");
   }
@@ -93,10 +104,10 @@ export default class CsvToJSON {
    * @returns Matrix of strings containing the data of the csv
    */
   splitCsvArray(csvArray: string[]): string[][] {
-    const splitedCsvArray = [];
-    for (let i = 1; i < csvArray.length - 1; i++) {
-      splitedCsvArray.push(csvArray[i].split(","));
-    }
+    csvArray.shift();
+    const splitedCsvArray: string[][] = csvArray.map((row) => row.split(","));
+    splitedCsvArray.pop();
+
     return splitedCsvArray;
   }
 
@@ -106,15 +117,14 @@ export default class CsvToJSON {
    * @param headers Array containing the headers of the csv
    * @returns an array of objects representing a valid json
    */
-  buildJson(splitedCsvArray: string[][], headers: string[]): any[] {
-    const json = [];
-    for (let row of splitedCsvArray) {
-      const newRow: any = {};
-      for (let i = 0; i < headers.length; i++) {
-        newRow[headers[i]] = row[i];
-      }
-      json.push(newRow);
-    }
+  buildJson(splitedCsvArray: string[][], headers: string[]): JsonProps[] {
+    const json = splitedCsvArray.reduce((acc: JsonProps[], row) => {
+      const jsonObject = row.reduce((acc: JsonProps, data, i) => {
+        acc[headers[i]] = data;
+        return acc;
+      }, {})
+      return [...acc, jsonObject];
+    }, [])
     return json;
   }
 
@@ -122,7 +132,7 @@ export default class CsvToJSON {
    * This method calls the other methods to build the valid json and return it
    * @returns an array of objects representing a valid json
    */
-  toJSON(): string[] {
+  toJSON(): JsonProps[] {
     const data = this.readData();
     const csvArray = this.csvToArray(data);
     const headers = this.getHeaders(csvArray);
@@ -137,17 +147,19 @@ export default class CsvToJSON {
    */
   writeJSON(): void {
     const json = this.toJSON();
-    if (fs.existsSync("output")) {
-      fs.writeFileSync(
-        `./output/${this.outputfilename}.json`,
-        JSON.stringify(json, null, 2)
-      );
-    } else {
+
+    const outputRepositoryExists = fs.existsSync("output") 
+    if (!outputRepositoryExists) {
       fs.mkdirSync("output");
+      
       fs.writeFileSync(
         `./output/${this.outputfilename}.json`,
         JSON.stringify(json, null, 2)
       );
     }
+    fs.writeFileSync(
+      `./output/${this.outputfilename}.json`,
+      JSON.stringify(json, null, 2)
+    );
   }
 }
