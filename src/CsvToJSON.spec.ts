@@ -1,5 +1,5 @@
 import CsvToJsonConversor from "./CsvToJSON";
-const fs = require("fs");
+import fs from "fs";
 const csv2json = new CsvToJsonConversor("exemplo.csv", "data", "exemplo");
 
 describe("Check if the directory exists", () => {
