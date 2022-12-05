@@ -21,10 +21,8 @@ export default class CsvToJSON {
    * @return true if the directory exists and false otherwise
    */
   checkIfDirectoryExists(): boolean {
-    const directoryExists = fs.existsSync(this.directoryName);
-    if (!directoryExists) return false;
-
-    return true;
+    const directoryExists: boolean = fs.existsSync(this.directoryName);
+    return directoryExists ? true : false;
   }
 
   /**
@@ -35,9 +33,7 @@ export default class CsvToJSON {
     const fileExists = fs.existsSync(
       `./${this.directoryName}/${this.filename}`
     );
-    if (!fileExists) return false;
-
-    return true;
+    return fileExists ? true : false;
   }
 
   /**
@@ -46,11 +42,8 @@ export default class CsvToJSON {
    */
   checkFileExtension(): boolean {
     const fileExtension = this.filename.slice(this.filename.length - 4);
-
     const isFileCsv = fileExtension === ".csv";
-    if (!isFileCsv) return false;
-
-    return true;
+    return isFileCsv ? true : false;
   }
 
   /**
@@ -68,7 +61,10 @@ export default class CsvToJSON {
       const isFileCsv = this.checkFileExtension();
       if (!isFileCsv) throw new Error("File is not a CSV");
 
-      return fs.readFileSync(`./data/${this.filename}`, "utf8");
+      return fs.readFileSync(
+        `./${this.directoryName}/${this.filename}`,
+        "utf8"
+      );
     } catch (error: any) {
       throw error.message;
     }
@@ -76,17 +72,15 @@ export default class CsvToJSON {
 
   /**
    * This method transforms the data of a csv file into an array of strings
-   * @param data The string containing the data of the csv file
+   * @param csvData The string containing the data of the csv file
    * @returns an array of strings containing the data of the csv file
    */
-  csvToArray(data: string): string[] {
-    const isSemicolonSeparated = data.includes(";")
-    if (!isSemicolonSeparated) return data.split("\n");
-
-    for (let i = 0; i < data.length; i++) {
-      data = data.replace(";", ",");
-    }
-    return data.split("\n");
+  csvToArray(csvData: string): string[] {
+    const isSemicolonSeparated = csvData.includes(";");
+    const csvDataLines = csvData.split("\n");
+    return !isSemicolonSeparated
+      ? csvDataLines
+      : csvDataLines.map((line) => line.replace(";", ","));
   }
 
   /**
@@ -106,8 +100,8 @@ export default class CsvToJSON {
   splitCsvArray(csvArray: string[]): string[][] {
     csvArray.shift();
     const splitedCsvArray: string[][] = csvArray.map((row) => row.split(","));
-    splitedCsvArray.pop();
-
+    const lastLine = splitedCsvArray[splitedCsvArray.length - 1];
+    lastLine[0] === "" ? splitedCsvArray.pop() : splitedCsvArray;
     return splitedCsvArray;
   }
 
@@ -122,9 +116,9 @@ export default class CsvToJSON {
       const jsonObject = row.reduce((acc: JsonProps, data, i) => {
         acc[headers[i]] = data;
         return acc;
-      }, {})
+      }, {});
       return [...acc, jsonObject];
-    }, [])
+    }, []);
     return json;
   }
 
@@ -141,6 +135,13 @@ export default class CsvToJSON {
     return json;
   }
 
+  writeJsonFileData(data: JsonProps[]): void {
+    fs.writeFileSync(
+      `./output/${this.outputfilename}.json`,
+      JSON.stringify(data, null, 2)
+    );
+  }
+
   /**
    * This method calls the toJSON method and write the data to a JSON file
    * @return void
@@ -148,18 +149,12 @@ export default class CsvToJSON {
   writeJSON(): void {
     const json = this.toJSON();
 
-    const outputRepositoryExists = fs.existsSync("output") 
+    const outputRepositoryExists = fs.existsSync("output");
     if (!outputRepositoryExists) {
       fs.mkdirSync("output");
-      
-      fs.writeFileSync(
-        `./output/${this.outputfilename}.json`,
-        JSON.stringify(json, null, 2)
-      );
+
+      this.writeJsonFileData(json);
     }
-    fs.writeFileSync(
-      `./output/${this.outputfilename}.json`,
-      JSON.stringify(json, null, 2)
-    );
+    this.writeJsonFileData(json);
   }
 }
