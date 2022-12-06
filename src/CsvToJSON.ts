@@ -22,7 +22,7 @@ export default class CsvToJSON {
    */
   checkIfDirectoryExists(): boolean {
     const directoryExists: boolean = fs.existsSync(this.directoryName);
-    return directoryExists ? true : false;
+    return directoryExists;
   }
 
   /**
@@ -33,7 +33,7 @@ export default class CsvToJSON {
     const fileExists = fs.existsSync(
       `./${this.directoryName}/${this.filename}`
     );
-    return fileExists ? true : false;
+    return fileExists;
   }
 
   /**
@@ -43,7 +43,7 @@ export default class CsvToJSON {
   checkFileExtension(): boolean {
     const fileExtension = this.filename.slice(this.filename.length - 4);
     const isFileCsv = fileExtension === ".csv";
-    return isFileCsv ? true : false;
+    return isFileCsv;
   }
 
   /**
@@ -52,8 +52,8 @@ export default class CsvToJSON {
    */
   readData(): string {
     try {
-      const repositoryExists = this.checkIfDirectoryExists();
-      if (!repositoryExists) throw new Error("Directory does not exist");
+      const directoryExists = this.checkIfDirectoryExists();
+      if (!directoryExists) throw new Error("Directory does not exist");
 
       const fileExists = this.checkIfFileExists();
       if (!fileExists) throw new Error("File does not exist");
