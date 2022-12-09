@@ -99,9 +99,7 @@ export default class CsvToJSON {
    */
   splitCsvArray(csvArray: string[]): string[][] {
     csvArray.shift();
-    const splitedCsvArray: string[][] = csvArray.map((row) => row.split(","));
-    const lastLine = splitedCsvArray[splitedCsvArray.length - 1];
-    lastLine[0] === "" ? splitedCsvArray.pop() : splitedCsvArray;
+    const splitedCsvArray: string[][] = csvArray.filter(Boolean).map((row) => row.split(","));
     return splitedCsvArray;
   }
 
